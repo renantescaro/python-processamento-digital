@@ -17,6 +17,7 @@ class Inicial(tk.Frame):
         self.criar_componentes()
 
         self.img_original = None
+        self.img_final    = None
         self.img_altura   = 0
         self.img_largura  = 0
         self.linha        = 0
@@ -96,10 +97,13 @@ class Inicial(tk.Frame):
     
     def processar_imagem(self):
         self.montar_histograma()
+        self.binarizacao()
 
     
     def montar_histograma(self):
+        # linha
         for i in range(self.linha):
+            # coluna
             for j in range(self.coluna):
                 rgb_imagem = self.img_original.convert('RGB')
                 r, g, b = rgb_imagem.getpixel((j, i))
@@ -113,26 +117,33 @@ class Inicial(tk.Frame):
 
 
     def binarizacao(self):
+        pillow_obj   = Image.new("RGB", (self.img_largura, self.img_altura))
+        self.img_final = pillow_obj.load()
+
+        # linha
         for i in range(self.linha):
+            # coluna
             for j in range(self.coluna):
                 rgb_imagem = self.img_original.convert('RGB')
                 r, g, b = rgb_imagem.getpixel((j, i))
-                if int(r) <= int(self.sv_limiar.get()):
-                    r = 0
-                else:
-                    r = 255
 
-                # ImgProcessada->Canvas->Pixels[j][i]=RGB(pix,pix,pix);
+                cor = 0
+                if int(r) > int(self.sv_limiar.get()):
+                    cor = 255
 
+                self.img_final[j, i] = (cor, cor, cor)
+
+        # diminui tamanho da imagem na tela
+        pillow_obj = pillow_obj.resize((round(100 / self.img_altura * self.img_largura), round(100)))
+        # imagem final
+        photo = ImageTk.PhotoImage( pillow_obj )
+        self.lbl_imagem_final = tk.Label(master=self.master, text = 'Imagem Final', image=photo)
+        self.lbl_imagem_final.image = photo
+        self.lbl_imagem_final.grid(row=2, column=3)
 
 
 root = tk.Tk()
 root.geometry('800x600')
 root.title('Processamento de Imagens')
 app = Inicial(master=root)
-
-# thread = threading.Thread( target=app.verificar )
-# thread.daemon = True 
-# thread.start()
-
 app.mainloop()
