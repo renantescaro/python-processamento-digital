@@ -1,7 +1,8 @@
 import tkinter as tk
 from tkinter import filedialog
 from PIL import ImageTk, Image
-import array
+from histograma import Histograma
+from binarizacao import Binarizacao
 
 class Inicial(tk.Frame):
     def __init__(self, master=None):
@@ -23,9 +24,6 @@ class Inicial(tk.Frame):
         self.linha        = 0
         self.coluna       = 0
         self.aux          = 0
-
-        array.array('i')
-        self.vetHistoOriginal = array.array('i', (0 for i in range(0,256)))
 
 
     def criar_componentes(self):
@@ -62,7 +60,7 @@ class Inicial(tk.Frame):
         self.edt_coluna = tk.Entry(self, width=15, textvariable=self.sv_coluna)
         self.edt_coluna.grid(row=4, column=2)
 
-        # Limiar
+        # Limiar 0 a 255 - normalmente 127
         self.lbl_limiar = tk.Label(
             self, text='Limiar')
         self.lbl_limiar.grid(row=5, column=1)
@@ -94,44 +92,16 @@ class Inicial(tk.Frame):
             self.sv_linha.set(self.linha)
             self.sv_coluna.set(self.coluna)
 
-    
+
     def processar_imagem(self):
-        self.montar_histograma()
-        self.binarizacao()
+        histograma = Histograma(self.linha, self.coluna, self.img_original)
+        histograma.imprimir()
 
-    
-    def montar_histograma(self):
-        # linha
-        for i in range(self.linha):
-            # coluna
-            for j in range(self.coluna):
-                rgb_imagem = self.img_original.convert('RGB')
-                r, g, b = rgb_imagem.getpixel((j, i))
-                self.vetHistoOriginal[r] = self.vetHistoOriginal[r]+1
-
-        print('Histograma: ')
-        histograma = ''
-        for h in self.vetHistoOriginal:
-            histograma += str(h)+str(',')
-        print(histograma)
-
-
-    def binarizacao(self):
         pillow_obj   = Image.new("RGB", (self.img_largura, self.img_altura))
         self.img_final = pillow_obj.load()
-
-        # linha
-        for i in range(self.linha):
-            # coluna
-            for j in range(self.coluna):
-                rgb_imagem = self.img_original.convert('RGB')
-                r, g, b = rgb_imagem.getpixel((j, i))
-
-                cor = 0
-                if int(r) > int(self.sv_limiar.get()):
-                    cor = 255
-
-                self.img_final[j, i] = (cor, cor, cor)
+        
+        binarizacao = Binarizacao(self.linha, self.coluna, self.img_original, self.img_final, self.sv_limiar.get())
+        self.img_final = binarizacao.processar()
 
         # diminui tamanho da imagem na tela
         pillow_obj = pillow_obj.resize((round(100 / self.img_altura * self.img_largura), round(100)))

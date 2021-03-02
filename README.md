@@ -2,7 +2,7 @@
 
 #### Dependencias
 * tkinter
-* PIL
+* PIL -> pip install Pillow
 * array
 
 ![Print](https://github.com/renantescaro/python-processamento-digital/blob/master/doc/print.png)
