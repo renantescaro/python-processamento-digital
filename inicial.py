@@ -3,6 +3,7 @@ from tkinter import filedialog
 from PIL import ImageTk, Image
 from histograma import Histograma
 from binarizacao import Binarizacao
+from passa import Passa
 
 class Inicial(tk.Frame):
     def __init__(self, master=None):
@@ -33,11 +34,23 @@ class Inicial(tk.Frame):
             command=self.selecionar_imagem)
         self.btn_selecionar_imagem.grid(row=1, column=1)
 
-        # botão processar imagem
-        self.btn_processar_imagem = tk.Button(
-            self, text='Processar Imagem',
-            command=self.processar_imagem)
-        self.btn_processar_imagem.grid(row=1, column=2)
+        # botão binarização
+        self.btn_binarizacao = tk.Button(
+            self, text='Binarização',
+            command=self.processar_binarizacao)
+        self.btn_binarizacao.grid(row=1, column=2)
+
+        # botão passa baixa
+        self.btn_passa_baixa = tk.Button(
+            self, text='Passa Baixa',
+            command=self.processar_passa_baixa)
+        self.btn_passa_baixa.grid(row=1, column=3)
+
+        # botão passa alta
+        self.btn_passa_alta = tk.Button(
+            self, text='Passa Alta',
+            command=self.processar_passa_alta)
+        self.btn_passa_alta.grid(row=1, column=4)
 
         # Tamanho
         self.lbl_tamanho = tk.Label(
@@ -86,21 +99,51 @@ class Inicial(tk.Frame):
             # variaveis para futura manipulação da imagem
             self.linha  = self.img_altura
             self.coluna = self.img_largura
-            self.aux = self.linha *  self.coluna
+            self.aux    = self.linha * self.coluna
 
             self.sv_tamanho.set(self.aux)
             self.sv_linha.set(self.linha)
             self.sv_coluna.set(self.coluna)
 
 
-    def processar_imagem(self):
+    def processar_passa_baixa(self):
+        pillow_obj     = Image.new("RGB", (self.img_largura, self.img_altura))
+        self.img_final = pillow_obj.load()
+        
+        self.img_final = Passa(self.linha, self.coluna, self.img_original, self.img_final).baixa()
+
+        # diminui tamanho da imagem na tela
+        pillow_obj = pillow_obj.resize((round(100 / self.img_altura * self.img_largura), round(100)))
+        # imagem final
+        photo = ImageTk.PhotoImage( pillow_obj )
+        self.lbl_imagem_final = tk.Label(master=self.master, text = 'Imagem Final', image=photo)
+        self.lbl_imagem_final.image = photo
+        self.lbl_imagem_final.grid(row=2, column=3)
+
+
+    def processar_passa_alta(self):
+        pillow_obj     = Image.new("RGB", (self.img_largura, self.img_altura))
+        self.img_final = pillow_obj.load()
+        
+        self.img_final = Passa(self.linha, self.coluna, self.img_original, self.img_final).alta()
+
+        # diminui tamanho da imagem na tela
+        pillow_obj = pillow_obj.resize((round(100 / self.img_altura * self.img_largura), round(100)))
+        # imagem final
+        photo = ImageTk.PhotoImage( pillow_obj )
+        self.lbl_imagem_final = tk.Label(master=self.master, text = 'Imagem Final', image=photo)
+        self.lbl_imagem_final.image = photo
+        self.lbl_imagem_final.grid(row=2, column=3)
+
+
+    def processar_binarizacao(self):
         histograma = Histograma(self.linha, self.coluna, self.img_original)
         histograma.imprimir()
 
-        pillow_obj   = Image.new("RGB", (self.img_largura, self.img_altura))
+        pillow_obj     = Image.new("RGB", (self.img_largura, self.img_altura))
         self.img_final = pillow_obj.load()
         
-        binarizacao = Binarizacao(self.linha, self.coluna, self.img_original, self.img_final, self.sv_limiar.get())
+        binarizacao    = Binarizacao(self.linha, self.coluna, self.img_original, self.img_final, self.sv_limiar.get())
         self.img_final = binarizacao.processar()
 
         # diminui tamanho da imagem na tela
@@ -113,7 +156,7 @@ class Inicial(tk.Frame):
 
 
 root = tk.Tk()
-root.geometry('800x600')
+root.geometry('800x400')
 root.title('Processamento de Imagens')
 app = Inicial(master=root)
 app.mainloop()
